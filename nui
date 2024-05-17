@@ -1,0 +1,79 @@
+PROGRAM MAIN
+IMPLICIT NONE
+
+REAL(8), PARAMETER :: G = 6.67408D-11
+REAL(8), PARAMETER :: M = 1.989D30
+REAL(8), PARAMETER :: m = 5.972D24
+REAL(8), PARAMETER :: X0 = -147095000000.0D0
+REAL(8), PARAMETER :: Y0 = 0.0D0
+REAL(8), PARAMETER :: VX0 = 0.0D0
+REAL(8), PARAMETER :: VY0 = -30300.0D0
+REAL(8), PARAMETER :: T = 365.0D0 * 24.0D0 * 60.0D0
+
+REAL(8) :: t, h, x, y, vx, vy
+REAL(8), DIMENSION(5, INT(T/h)+1) :: A
+INTEGER :: i, n
+
+CONTAINS
+
+FUNCTION ax(x, y) RESULT(acc_x)
+REAL(8), INTENT(IN) :: x, y
+REAL(8) :: r, acc_x
+r = SQRT(x**2 + y**2)
+acc_x = -G * M * x / (r**3)
+END FUNCTION ax
+
+FUNCTION ay(x, y) RESULT(acc_y)
+REAL(8), INTENT(IN) :: x, y
+REAL(8) :: r, acc_y
+r = SQRT(x**2 + y**2)
+acc_y = -G * M * y / (r**3)
+END FUNCTION ay
+
+SUBROUTINE rk(ax, ay, x, y, vx, vy, h)
+REAL(8), EXTERNAL :: ax, ay
+REAL(8), INTENT(IN) :: x, y, vx, vy, h
+REAL(8) :: k1x, k1y, q1x, q1y, k2x, k2y, q2x, q2y, k3x, k3y, q3x, q3y, k4x, k4y, q4x, q4y
+INTEGER :: i, n
+
+t = 0.0D0
+n = INT(T / h)
+A(1, 1) = t
+A(2, 1) = x
+A(3, 1) = y
+A(4, 1) = vx
+A(5, 1) = vy
+
+DO i = 2, n+1
+    k1x = vx
+    k1y = vy
+    q1x = ax(x, y)
+    q1y = ay(x, y)
+    k2x = vx + h * q1x / 2.0D0
+    k2y = vy + h * q1y / 2.0D0
+    q2x = ax(x + h * k1x / 2.0D0, y + h * k1y / 2.0D0)
+    q2y = ay(x + h * k1x / 2.0D0, y + h * k1y / 2.0D0)
+    k3x = vx + h * q2x / 2.0D0
+    k3y = vy + h * q2y / 2.0D0
+    q3x = ax(x + h * k2x / 2.0D0, y + h * k2y / 2.0D0)
+    q3y = ay(x + h * k2x / 2.0D0, y + h * k2y / 2.0D0)
+    k4x = vx + h * q3x
+    k4y = vy + h * q3y
+    q4x = ax(x + h * k4x, y + h * k4y)
+    q4y = ay(x + h * k4x, y + h * k4y)
+    x = x + h * (k1x + 2.0D0 * k2x + 2.0D0 * k3x + k4x) / 6.0D0
+    A(2, i) = x
+    y = y + h * (k1y + 2.0D0 * k2y + 2.0D0 * k3y + k4y) / 6.0D0
+    A(3, i) = y
+    vx = vx + h * (q1x + 2.0D0 * q2x + 2.0D0 * q3x + q4x) / 6.0D0
+    A(4, i) = vx
+    vy = vy + h * (q1y + 2.0D0 * q2y + 2.0D0 * q3y + q4y) / 6.0D0
+    A(5, i) = vy
+    t = t + h
+    A(1, i) = t
+END DO
+
+END SUBROUTINE rk
+
+END PROGRAM MAIN
+
