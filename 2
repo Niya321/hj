@@ -1,0 +1,51 @@
+PROGRAM runge_kutta
+    IMPLICIT NONE
+    INTEGER, PARAMETER :: n = 1000
+    REAL, PARAMETER :: x0 = 0.0, y0 = 1.0, x1 = 2.0, h = 0.01
+    REAL, DIMENSION(n) :: x, y
+    INTEGER :: i
+
+    ! Initialize arrays
+    x(1) = x0
+    y(1) = y0
+
+    ! Runge-Kutta method
+    DO i = 2, n
+        h = x(i) - x(i-1)
+        x(i) = x(i-1) + h
+        y(i) = y(i-1) + (h/6) * (k1 + 2*k2 + 2*k3 + k4)
+    END DO
+
+    ! Print results
+    DO i = 1, n
+        PRINT *, x(i), y(i)
+    END DO
+
+CONTAINS
+
+    FUNCTION f(x, y)
+        REAL :: f, x, y
+        f = (x - y) / 2.0
+    END FUNCTION f
+
+    FUNCTION k1(x, y)
+        REAL :: k1, x, y
+        k1 = h * f(x, y)
+    END FUNCTION k1
+
+    FUNCTION k2(x, y)
+        REAL :: k2, x, y
+        k2 = h * f(x + 0.5*h, y + 0.5*k1)
+    END FUNCTION k2
+
+    FUNCTION k3(x, y)
+        REAL :: k3, x, y
+        k3 = h * f(x + 0.5*h, y + 0.5*k2)
+    END FUNCTION k3
+
+    FUNCTION k4(x, y)
+        REAL :: k4, x, y
+        k4 = h * f(x + h, y + k3)
+    END FUNCTION k4
+
+END PROGRAM runge_kutta
