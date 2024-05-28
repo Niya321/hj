@@ -1,0 +1,63 @@
+program coupled_odes
+2  implicit none
+3
+4  integer, parameter :: n = 2 ! number of equations
+5  real, parameter :: h = 0.01 ! time step
+6  real, parameter :: t_end = 10.0 ! end time
+7  integer, parameter :: n_steps = int(t_end / h)
+8
+9  real :: t, q, v, E
+10  real :: k1(n), k2(n), k3(n), k4(n)
+11  real :: y(n)
+12
+13  interface
+14    subroutine func(t, y, dydt)
+15      real, intent(in) :: t
+16      real, intent(in) :: y(n)
+17      real, intent(out) :: dydt(n)
+18    end subroutine func
+19  end interface
+20
+21  y(1) = 1.0 ! initial condition for q
+22  y(2) = 0.0 ! initial condition for v
+23  t = 0.0
+24
+25  do i = 1, n_steps
+26    call func(t, y, k1)
+27    k1 = k1 * h
+28
+29    y_tmp = y + 0.5 * k1
+30    call func(t + 0.5 * h, y_tmp, k2)
+31    k2 = k2 * h
+32
+33    y_tmp = y + 0.5 * k2
+34    call func(t + 0.5 * h, y_tmp, k3)
+35    k3 = k3 * h
+36
+37    y_tmp = y + k3
+38    call func(t + h, y_tmp, k4)
+39    k4 = k4 * h
+40
+41    y = y + (k1 + 2.0 * k2 + 2.0 * k3 + k4) / 6.0
+42    t = t + h
+43
+44    write (*,*) t, y(1), y(2)
+45  end do
+46
+47contains
+48
+49  subroutine func(t, y, dydt)
+50    real, intent(in) :: t
+51    real, intent(in) :: y(n)
+52    real, intent(out) :: dydt(n)
+53
+54    real :: q, v, E
+55
+56    q = y(1)
+57    v = y(2)
+58
+59    E = q**2 ! example potential energy function
+60    dydt(1) = v
+61    dydt(2) = -2.0 * q ! dE/dq = -2*q
+62  end subroutine func
+63end program coupled_odes
